@@ -14,3 +14,6 @@ ipywidgets
 streamlit
 joblib
 imblearn
+tensorflow-cpu
+opencv-python-headless
+Pillow
