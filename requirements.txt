@@ -18,3 +18,10 @@ streamlit
 tensorflow-cpu
 opencv-python-headless
 Pillow
+streamlit
+tensorflow-cpu==2.13.0
+numpy
+opencv-python-headless
+Pillow
+h5py
+gdown
