@@ -5,7 +5,7 @@ from tensorflow.keras.models import load_model
 from PIL import Image
 
 # Load your trained model
-model = load_model("best_model.h5")   # 👉 replace with your saved model
+model = load_model("best_model_deep_cnn.h5")
 
 class_names = ["Covid", "Normal", "Viral Pneumonia"]
 
