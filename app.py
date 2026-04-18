@@ -5,7 +5,17 @@ from tensorflow.keras.models import load_model
 from PIL import Image
 
 # Load your trained model
-model = load_model("best_model_deep_cnn.h5")
+import os
+import gdown
+from tensorflow.keras.models import load_model
+
+MODEL_PATH = "model.h5"
+
+if not os.path.exists(MODEL_PATH):
+    url = "https://drive.google.com/uc?id=YOUR_FILE_ID"
+    gdown.download(url, MODEL_PATH, quiet=False)
+
+model = load_model(MODEL_PATH)
 
 class_names = ["Covid", "Normal", "Viral Pneumonia"]
 
