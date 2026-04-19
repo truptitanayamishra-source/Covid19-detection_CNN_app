@@ -1,72 +1,90 @@
 import streamlit as st
 import numpy as np
 import cv2
+import os
+import gdown
+import requests
+from io import BytesIO
 from tensorflow.keras.models import load_model
 from PIL import Image
 
-# Load your trained model
-import os
-import gdown
-from tensorflow.keras.models import load_model
-
+# -------------------------------
+# Load Model 
+# -------------------------------
 @st.cache_resource
 def load_trained_model():
     MODEL_PATH = "model.h5"
 
     if not os.path.exists(MODEL_PATH):
-        url = "https://www.dreamstime.com/royalty-free-stock-image-chest-ray-image-image28672896"
+        url = "https://raw.githubusercontent.com/ieee8023/covid-chestxray-dataset/master/images/1-s2.0-S0140673620303706-fx1_lrg.jpg"
         gdown.download(url, MODEL_PATH, quiet=False)
 
     return load_model(MODEL_PATH)
 
+
+# Class labels
 class_names = ["Covid", "Normal", "Viral Pneumonia"]
 
+# -------------------------------
+# UI
+# -------------------------------
 st.title("COVID-19 Detection from Chest X-ray")
-st.write("Upload a chest X-ray image to get prediction")
+st.write("Upload a chest X-ray image OR use the sample/test image")
 
 try:
     model = load_trained_model()
-    
-    # File uploader - FIXED: Changed URL to proper label
-    uploaded_file = st.file_uploader("Choose an X-ray image", type=["jpg", "png", "jpeg"])
-    image_url = st.text_input("https://upload.wikimedia.org/wikipedia/commons/8/8e/Chest_Xray_PA_3-8-2010.png")
 
+    # Upload option
+    uploaded_file = st.file_uploader("Upload X-ray Image", type=["jpg", "png", "jpeg"])
+    image_url = st.text_input("Or paste image URL here", value=default_url)
+
+    image = None
+
+    # Load from upload
     if uploaded_file is not None:
-        # Display image
         image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image", use_container_width=True)
-    
-        # Preprocess image
+
+    # Load from URL
+    elif image_url:
+        try:
+            headers = {"User-Agent": "Mozilla/5.0"}
+            response = requests.get(image_url, headers=headers)
+            image = Image.open(BytesIO(response.content))
+        except:
+            st.error("❌ Invalid image URL")
+
+    # -------------------------------
+    # Prediction
+    # -------------------------------
+    if image is not None:
+
+        st.image(image, caption="Input Image", use_container_width=True)
+
         img = np.array(image)
-        
-        # Handle both grayscale and color images
-        if len(img.shape) == 2:  # Grayscale
+
+        # Handle grayscale / RGBA
+        if len(img.shape) == 2:
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        elif img.shape[2] == 4:  # RGBA
+        elif img.shape[2] == 4:
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
-        
+
         img = cv2.resize(img, (128, 128))
         img = img / 255.0
         img = np.expand_dims(img, axis=0)
-    
-        # Prediction
+
         predictions = model.predict(img)
         pred_class = np.argmax(predictions)
         confidence = np.max(predictions)
-    
-        # Output
+
         st.subheader("Prediction:")
         st.write(f"**{class_names[pred_class]}**")
-    
+
         st.subheader("Confidence:")
         st.write(f"{confidence:.2%}")
-    
-        # Show probabilities
+
         st.subheader("Class Probabilities:")
         for i, cls in enumerate(class_names):
             st.write(f"{cls}: {predictions[0][i]:.4f}")
 
-except FileNotFoundError:
-    st.error("❌ Model file 'best_model_deep_cnn.h5' not found. Please train and save the model first.")
 except Exception as e:
     st.error(f"❌ Error: {str(e)}")
