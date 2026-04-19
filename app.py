@@ -1,33 +1,21 @@
 import streamlit as st
 import numpy as np
 import cv2
-import os
-import gdown
 import requests
 from io import BytesIO
 from tensorflow.keras.models import load_model
 from PIL import Image
 
 # -------------------------------
-# Load Model 
+# Load Model (LOCAL ONLY)
 # -------------------------------
 @st.cache_resource
 def load_trained_model():
-    MODEL_PATH = "model.h5"
-
-    if not os.path.exists(MODEL_PATH):
-        url = "https://raw.githubusercontent.com/ieee8023/covid-chestxray-dataset/master/images/1-s2.0-S0140673620303706-fx1_lrg.jpg"
-        gdown.download(url, MODEL_PATH, quiet=False)
-
-    return load_model(MODEL_PATH)
-
+    return load_model("best_model_deep_cnn.h5")  # must exist
 
 # Class labels
 class_names = ["Covid", "Normal", "Viral Pneumonia"]
 
-# -------------------------------
-# UI
-# -------------------------------
 st.title("COVID-19 Detection from Chest X-ray")
 st.write("Upload a chest X-ray image OR use the sample/test image")
 
@@ -36,6 +24,10 @@ try:
 
     # Upload option
     uploaded_file = st.file_uploader("Upload X-ray Image", type=["jpg", "png", "jpeg"])
+
+    # ✅ Your GitHub image link used correctly here
+    default_url = "https://raw.githubusercontent.com/ieee8023/covid-chestxray-dataset/master/images/1-s2.0-S0140673620303706-fx1_lrg.jpg"
+
     image_url = st.text_input("Or paste image URL here", value=default_url)
 
     image = None
@@ -51,7 +43,7 @@ try:
             response = requests.get(image_url, headers=headers)
             image = Image.open(BytesIO(response.content))
         except:
-            st.error("❌ Invalid image URL")
+            st.error("Invalid image URL")
 
     # -------------------------------
     # Prediction
@@ -62,7 +54,6 @@ try:
 
         img = np.array(image)
 
-        # Handle grayscale / RGBA
         if len(img.shape) == 2:
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         elif img.shape[2] == 4:
@@ -81,10 +72,6 @@ try:
 
         st.subheader("Confidence:")
         st.write(f"{confidence:.2%}")
-
-        st.subheader("Class Probabilities:")
-        for i, cls in enumerate(class_names):
-            st.write(f"{cls}: {predictions[0][i]:.4f}")
 
 except Exception as e:
     st.error(f"❌ Error: {str(e)}")
