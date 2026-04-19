@@ -14,7 +14,7 @@ def load_trained_model():
     MODEL_PATH = "model.h5"
 
     if not os.path.exists(MODEL_PATH):
-        url = "https://drive.google.com/uc?id=YOUR_FILE_ID"
+        url = "https://www.dreamstime.com/royalty-free-stock-image-chest-ray-image-image28672896"
         gdown.download(url, MODEL_PATH, quiet=False)
 
     return load_model(MODEL_PATH)
