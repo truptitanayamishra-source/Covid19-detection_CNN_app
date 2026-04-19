@@ -19,7 +19,8 @@ try:
     
     # File uploader - FIXED: Changed URL to proper label
     uploaded_file = st.file_uploader("Choose an X-ray image", type=["jpg", "png", "jpeg"])
-    
+    image_url = st.text_input("https://upload.wikimedia.org/wikipedia/commons/8/8e/Chest_Xray_PA_3-8-2010.png")
+
     if uploaded_file is not None:
         # Display image
         image = Image.open(uploaded_file)
