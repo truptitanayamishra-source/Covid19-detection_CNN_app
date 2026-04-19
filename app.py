@@ -5,6 +5,9 @@ import requests
 from io import BytesIO
 from tensorflow.keras.models import load_model
 from PIL import Image
+@st.cache_resource
+def load_trained_model():
+    return load_model("best_model_deep_cnn.h5")
 
 # Class labels
 class_names = ["Covid", "Normal", "Viral Pneumonia"]
